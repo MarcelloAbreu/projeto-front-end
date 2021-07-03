@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda - Front-End + Back-End</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+</head>
+<body>
+    <div id="app" class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="index.html">Agenda - Front-End + Back-End</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                    <div class="navbar-nav">
+                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                        <a class="nav-link" href="#" v-on:click="criarNovo()">Novo</a>
+                    </div>
+                </div>
+                <form class="d-flex" action="/pesquisar" method="POST">
+                    <input class="form-control me-2" type="search" placeholder="Nome..." aria-label="Pesquisa" name="nome" id="nome" th:value="${pesquisa}">
+                    <button class="btn btn-sm btn-outline-light" type="submit">Pesquisa</button>
+                </form> 
+            </div>
+        </nav>
+
+    <div class="container my-4">
+        <div id="lista" v-if="podeExibirLista">
+            <button class="btn btn-success" v-on:click="criarNovo()">Novo</button>
+                <div class="row my-2 p-1 border" v-for="item in lista">
+                    <div class="col-6 my-auto">
+                        <a href="#" v-on:click="mostrarDetalhes(item.id)">{{ item.nome }}</a>
+                    </div>
+
+                    <div class="col-3 text-center">
+                        <button class="btn btn-warning" v-on:click="editar(item.id)">Editar</button>
+                    </div>
+
+                    <div class="col-3 text-center">
+                        <button class="btn btn-danger" v-on:click="deletar(item.id)">Apagar</button>
+                    </div>
+                </div>
+        </div>
+
+        <div id="detalhes" v-if="podeExibirDetalhes">
+            <div class="row col-3 ">
+                <div class="col-2 my-auto" >Nome:</div>
+                <div class="col "><span class="h3">{{ contato.nome }}</span></div>
+            </div>
+
+            <div class="row col-3 ">
+                <div class="col-2 my-auto" >Tipo:</div>
+                <div class="col "><span class="h3">{{ contato.tipo }}</span></div>
+            </div>
+
+            <div class="row col-3 ">
+                <div class="col-2 my-auto" >Telefone:</div>
+                <div class="col "><span class="h3">{{ contato.telefone }}</span></div>
+            </div>
+            <a href="#" v-on:click="exibirLista()">Voltar</a>
+        </div>
+    </div>
+
+        <div id="cadastro" v-if="podeExibirFormulario"> 
+            <div class="form-group my-3">
+                <label for="nome">Nome</label>
+                <input type="text" class="form-control" name="nome" id="nome" v-model="contato.nome" />
+            </div>
+        <div class="form-group my-3">
+            <label for="tipo">Tipo</label>
+            <select class="form-group" name="tipo" id="tipo" v-model="contato.tipo">
+                <option value="Comercial">Comercial</option>
+                <option value="Residencial">Residencial</option>
+            </select>
+        </div>
+        <div class="form-group my-3">
+            <label for="telefone">Telefone</label>
+            <input type="text" class="form-control" name="telefone" id="telefone" v-model="contato.telefone" />
+        </div>
+        <button class="btn btn-primary" v-on:click="cadastrar()">Salvar</button>
+        <a href="#" v-on:click="exibirLista()">Voltar</a>
+    </div>
+
+    </div>
+
+    <script>
+        var app = new Vue ({
+            el: '#app',
+            data:{
+                podeExibirLista:false,
+                podeExibirDetalhes:false,
+                podeExibirFormulario:false,
+                lista:[] ,
+                contato: {}
+            },
+            methods:{
+                exibirLista:function(){
+                    this.podeExibirLista=true;
+                    this.podeExibirDetalhes=false;
+                    this.podeExibirFormulario=false;
+                },
+                exibirDetalhes:function(){
+                    this.podeExibirLista=false;
+                    this.podeExibirDetalhes=true;
+                    this.podeExibirFormulario=false;
+                },
+                exibirFormulario:function(){
+                    this.podeExibirLista=false;
+                    this.podeExibirDetalhes=false;
+                    this.podeExibirFormulario=true;
+                },
+
+                listarTodos:function(){
+                    fetch('http://localhost:8080/')
+                    .then( (resposta) => resposta.json() )
+                    .then( ( objetoLista) => {
+                        console.log(objetoLista);
+                        this.lista = objetoLista;
+                    })
+                } ,
+                lerDetalhes:function(id){
+                    this.contato = this.lista.find(item => item.id == id);
+                    /*
+                    fetch('http://localhost:8080/detalhes/' + id )
+                    .then( (resposta) => resposta.json() )
+                    .then( ( objetoContato) => {
+                        console.log(objetoContato);
+                        this.contato = objetoContato;
+                    })
+                    */
+                },
+                deletar:function(id){
+                    fetch('http://localhost:8080/deletar/' + id )
+                    .then( () => {
+                        this.listarTodos();
+                        this.contato = {};
+                    });
+                },
+                cadastrar:function(){
+                 const headers = new Headers( { 'Content-Type': 'application/json' } );
+                fetch('http://localhost:8080/adicionar',
+                    {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(this.contato)
+                    }
+                )
+                .then( (resposta) => resposta.json() )
+                .then( (objetoContato) => {
+                    console.log(objetoContato);
+                    this.contato = objetoContato;
+                    this.listarTodos();
+                    this.exibirDetalhes(this.contato.id);
+                });
+                },
+                limparCampo:function(){
+                    this.contato = {};
+                },
+                criarNovo: function(){
+                    this.limparCampo();
+                    this.exibirFormulario();
+                },
+                editar: function(id){
+                    this.lerDetalhes(id);
+                    this.exibirDetalhes();
+                },
+                mostrarDetalhes: function (id){
+                    this.lerDetalhes(id);
+                    this.exibirDetalhes();
+                }         
+            },
+            created:function(){
+                this.listarTodos();
+                this.exibirLista();
+            }
+        });
+    
+    </script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script> 
+</body>
+</html>
